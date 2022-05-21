@@ -1,2 +1,2 @@
 # mawinter-discord
-mawinter-discord is client for mawinter-server
+mawinter-discord is the client for mawinter-server [https://github.com/azuki774/mawinter-server]

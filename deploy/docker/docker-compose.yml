@@ -9,4 +9,5 @@ services:
     - token.env
     environment:
     - RUNENV=local
+    - TZ=Asia/Tokyo
     
