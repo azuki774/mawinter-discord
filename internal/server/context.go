@@ -43,7 +43,8 @@ func (d *discordUsers) getUserInfoByID(targetID string) (*discordUser, error) {
 	return nil, ErrUserNotFound
 }
 
-func (d *discordUser) changeCtxStatus(nextCtx ContextStatus) {
+func (d *discordUser) changeCtxStatus(nextCtx ContextStatus) *discordUser {
 	logger.Infow("change status", "userID", d.ID, "username", d.Name, "nowstatus", d.Context, "nextstatus", nextCtx)
 	d.Context = nextCtx
+	return d
 }
