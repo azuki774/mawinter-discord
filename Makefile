@@ -1,7 +1,8 @@
 VERSION_API=develop
 container_name=azuki774/mawinter-discord
+container_id=`docker ps -aqf "name=mawinter-discord"`
 
-.PHONY: build test run stop
+.PHONY: build test run stop logs
 build:
 	docker build -t $(container_name):$(VERSION_API) -f build/Dockerfile .
 
@@ -16,3 +17,7 @@ stop:
 
 rebuild:
 	make stop && make && make run
+
+logs:
+	echo $(container_id)
+	docker logs $(container_id)

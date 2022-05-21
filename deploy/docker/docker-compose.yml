@@ -5,3 +5,8 @@ services:
     image: azuki774/mawinter-discord:develop
     container_name: mawinter-discord
     restart: always
+    env_file:
+    - token.env
+    environment:
+    - RUNENV=local
+    
