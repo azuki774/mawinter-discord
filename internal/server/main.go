@@ -8,38 +8,24 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func Start() (err error) {
-	logger, err = GetSugaredLogger()
-	if err != nil {
-		return err
-	}
+var users *discordUsers
 
-	logger.Info("Set logger")
+func Start(botConfig *DiscordBotConfig) (err error) {
+	logger = botConfig.Logger
+	users = &discordUsers{}
 
-	token, err := GetEnviroment()
-	if err != nil {
-		logger.Error("Get environment error")
-		return err
-	}
+	// TODO: add user system
+	users.addDiscordUser("288297568369246208", "azuki")
 
-	logger.Infow("Run enviromenment", "env", runEnviroment)
-
-	if err = runServer(token); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func runServer(token string) (err error) {
-	discord, err := discordgo.New("Bot " + token)
+	discord, err := discordgo.New("Bot " + botConfig.AuthToken)
 	if err != nil {
 		return err
 	}
 	discord.AddHandler(messageCreate)
-	discord.Identify.Intents = discordgo.IntentsGuildMessages
+	discord.AddHandler(messageReaction)
+	discord.Identify.Intents = discordgo.IntentsDirectMessages | discordgo.IntentsDirectMessageReactions
 
-	err = discord.Open()
+	err = discord.Open() // Connect Discord
 	if err != nil {
 		logger.Errorw("failed to start discord bot", "error", err)
 		return err
@@ -49,7 +35,7 @@ func runServer(token string) (err error) {
 
 	stopBot := make(chan os.Signal, 1)
 	signal.Notify(stopBot, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
-	logger.Infow("catch stop signal", "signal", <-stopBot)
+	logger.Infow("catch stop signal", "signal", <-stopBot) // blocking
 
 	err = discord.Close()
 	if err != nil {
