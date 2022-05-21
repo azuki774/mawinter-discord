@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/azuki774/mawinter-discord/internal/client"
 	"github.com/azuki774/mawinter-discord/internal/server"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -89,5 +90,9 @@ func GetEnviroment() (botConfig *server.DiscordBotConfig, err error) {
 		botConfig.EnvName = "undefined"
 		logger.Warn("run environment is undefined")
 	}
+
+	// TODO : USE_MOCK Optionの処理
+
+	botConfig.MawinterClient = client.NewMockClientRepo()
 	return botConfig, nil
 }

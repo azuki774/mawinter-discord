@@ -1,6 +1,10 @@
 package server
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/azuki774/mawinter-discord/internal/client"
+)
 
 type ContextStatus string
 
@@ -21,13 +25,16 @@ type discordUsers struct {
 	Users []*discordUser
 }
 type discordUser struct {
-	ID          string
-	Name        string // for memo
-	Context     ContextStatus
-	LastOrderID int64 // not found = -1
+	ServerInfo       client.ServerInfo
+	ID               string
+	Name             string // for memo
+	Context          ContextStatus
+	ChooseCategoryID int64 // now choosing categoryID
+	LastOrderID      int64 // not found = -1
 }
 
 func (d *discordUsers) addDiscordUser(id string, name string) *discordUser {
+	// ToDo: ServerInfo をセットする
 	newUser := discordUser{ID: id, Name: name, Context: ContextClosing, LastOrderID: -1}
 	d.Users = append(d.Users, &newUser)
 	return &newUser
