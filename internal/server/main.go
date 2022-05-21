@@ -33,10 +33,18 @@ func Start() (err error) {
 
 func runServer(token string) (err error) {
 	discord, err := discordgo.New("Bot " + token)
-	err = discord.Open()
 	if err != nil {
 		return err
 	}
+	discord.AddHandler(messageCreate)
+	discord.Identify.Intents = discordgo.IntentsGuildMessages
+
+	err = discord.Open()
+	if err != nil {
+		logger.Errorw("failed to start discord bot", "error", err)
+		return err
+	}
+
 	logger.Info("start discord bot")
 
 	stopBot := make(chan os.Signal, 1)
