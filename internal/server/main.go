@@ -12,6 +12,7 @@ var users *discordUsers
 
 func Start(botConfig *DiscordBotConfig) (err error) {
 	logger = botConfig.Logger
+	clientrepo = botConfig.MawinterClient
 	users = &discordUsers{}
 
 	// TODO: add user system

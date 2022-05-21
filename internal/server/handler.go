@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/bwmarrin/discordgo"
@@ -15,6 +16,14 @@ const (
 	categoryCompute       = "🖥️"
 	categoryTrans         = "🚉"
 	categoryStudy         = "📗"
+
+	categoryIDFood          = 210
+	categoryIDLife          = 240
+	categoryIDEntertainment = 250
+	categoryIDFriends       = 251
+	categoryIDCompute       = 230
+	categoryIDTrans         = 270
+	categoryIDStudy         = 260
 )
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -33,6 +42,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	loggerIDName := logger.With("username", user.Name)
 	loggerIDName.Infow("post Message", "message", m.Content)
 
+	var price int
 	switch user.Context {
 	case ContextClosing:
 		loggerIDName.Debugw("check now status", "status", ContextClosing)
@@ -47,15 +57,26 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			categoryChoicePost(s, m, user)
 		}
 		// parse price
-		_, err = strconv.Atoi(m.Content)
+		price, err = strconv.Atoi(m.Content)
 		if err != nil {
 			loggerIDName.Warnw("invalid price value", "error", err)
 			return
 		}
 
 		// POST to mawinter-server
+		res, err := clientrepo.PostMawinter(user.ServerInfo, user.ChooseCategoryID, int64(price))
+		if err != nil {
+			// TODO: invalid data or connection lost かで分ける
+			logger.Errorw("failed to send order to mawinter-server", "error", err)
+		}
 
-		// TODO: real Response
+		logger.Infow("receive response from mawinter", "response", *res, "addr", user.ServerInfo.Addr)
+		resText := fmt.Sprintf("ID: %v, Name: %v, Price: %v", res.Id, res.Name, res.Price)
+		_, err = s.ChannelMessageSend(m.ChannelID, resText)
+		if err != nil {
+			logger.Errorw("failed to send message", "error", err)
+			return
+		}
 
 		user.changeCtxStatus(ContextOrderWaiting)
 		categoryChoicePost(s, m, user)
@@ -78,28 +99,37 @@ func messageReaction(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	}
 
 	loggerIDName := logger.With("username", user.Name)
+
 	switch r.Emoji.Name {
 	case categoryFood:
 		loggerIDName.Infow("category choose", "category", "food")
+		user.ChooseCategoryID = categoryIDFood
 	case categoryLife:
 		loggerIDName.Infow("category choose", "category", "life")
+		user.ChooseCategoryID = categoryIDLife
 	case categoryEntertainment:
 		loggerIDName.Infow("category choose", "category", "entertainment")
+		user.ChooseCategoryID = categoryIDEntertainment
 	case categoryFriends:
 		loggerIDName.Infow("category choose", "category", "friends")
+		user.ChooseCategoryID = categoryIDFriends
 	case categoryCompute:
 		loggerIDName.Infow("category choose", "category", "compute")
+		user.ChooseCategoryID = categoryIDCompute
 	case categoryTrans:
 		loggerIDName.Infow("category choose", "category", "trans")
+		user.ChooseCategoryID = categoryIDTrans
 	case categoryStudy:
 		loggerIDName.Infow("category choose", "category", "study")
+		user.ChooseCategoryID = categoryIDStudy
 	default:
 		loggerIDName.Infow("unknown choose", "category", r.Emoji.Name)
+		user.ChooseCategoryID = -1
 		return
 	}
 
 	user.changeCtxStatus(ContextPriceWaiting)
-	_, err = s.ChannelMessageSend(r.ChannelID, "you choose "+r.Emoji.Name+"\n"+"what value?")
+	_, err = s.ChannelMessageSend(r.ChannelID, "you choose "+r.Emoji.Name+"\n"+"what value? (type 'r' to back to category select.")
 	if err != nil {
 		logger.Errorw("failed to send message", "error", err)
 		return

@@ -10,4 +10,6 @@ services:
     environment:
     - RUNENV=local
     - TZ=Asia/Tokyo
-    
+    - MAWINTER_PATH=mawinter-server
+    - USE_MOCK=1 # 0 .. Use local server, 1 .. use internal mock
+
