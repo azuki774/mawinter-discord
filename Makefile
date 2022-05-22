@@ -1,10 +1,14 @@
-VERSION_API=develop
+version_api=develop
 container_name=azuki774/mawinter-discord
 container_id=`docker ps -aqf "name=mawinter-discord"`
 
 .PHONY: build test run stop logs
 build:
-	docker build -t $(container_name):$(VERSION_API) -f build/Dockerfile .
+	docker build -t $(container_name):$(version_api) -f build/Dockerfile .
+
+push:
+	docker tag $(container_name):$(version_api) ghcr.io/$(container_name):$(version_api)
+	docker push ghcr.io/$(container_name):$(version_api)
 
 test:
 	go test -v ./...
@@ -19,5 +23,4 @@ rebuild:
 	make stop && make && make run
 
 logs:
-	echo $(container_id)
 	docker logs $(container_id)

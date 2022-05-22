@@ -46,8 +46,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	switch user.Context {
 	case ContextClosing:
 		loggerIDName.Debugw("check now status", "status", ContextClosing)
-		categoryChoicePost(s, m, user)
 		user.changeCtxStatus(ContextOrderWaiting)
+		categoryChoicePost(s, m, user)
 	case ContextOrderWaiting:
 		loggerIDName.Debugw("check now status", "status", ContextOrderWaiting)
 	case ContextPriceWaiting:
@@ -60,18 +60,24 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		price, err = strconv.Atoi(m.Content)
 		if err != nil {
 			loggerIDName.Warnw("invalid price value", "error", err)
+			_, err = s.ChannelMessageSend(m.ChannelID, "invalid value"+"\n"+"what value? (type 'r' to back to category select.)")
+			if err != nil {
+				logger.Errorw("failed to send message", "error", err)
+				return
+			}
 			return
 		}
 
 		// POST to mawinter-server
-		res, err := clientrepo.PostMawinter(user.ServerInfo, user.ChooseCategoryID, int64(price))
+		res, err := clientrepo.PostMawinter(&user.ServerInfo, user.ChooseCategoryID, int64(price))
 		if err != nil {
 			// TODO: invalid data or connection lost かで分ける
 			logger.Errorw("failed to send order to mawinter-server", "error", err)
+			return
 		}
 
 		logger.Infow("receive response from mawinter", "response", *res, "addr", user.ServerInfo.Addr)
-		resText := fmt.Sprintf("ID: %v, Name: %v, Price: %v", res.Id, res.Name, res.Price)
+		resText := fmt.Sprintf("ID: %v, categoryID: %v, Price: %v", res.Id, res.CategoryId, res.Price)
 		_, err = s.ChannelMessageSend(m.ChannelID, resText)
 		if err != nil {
 			logger.Errorw("failed to send message", "error", err)
@@ -129,7 +135,7 @@ func messageReaction(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	}
 
 	user.changeCtxStatus(ContextPriceWaiting)
-	_, err = s.ChannelMessageSend(r.ChannelID, "you choose "+r.Emoji.Name+"\n"+"what value? (type 'r' to back to category select.")
+	_, err = s.ChannelMessageSend(r.ChannelID, "you choose "+r.Emoji.Name+"\n"+"what value? (type 'r' to back to category select.)")
 	if err != nil {
 		logger.Errorw("failed to send message", "error", err)
 		return
