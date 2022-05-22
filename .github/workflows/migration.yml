@@ -1,0 +1,26 @@
+name: migration-test
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - '**' 
+
+jobs:
+  migration:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.18
+
+    - name: Setup mawinter for test
+      run: docker-compose -f deploy/docker/migration-test.yml up --build -d && sleep 20s
+
+    - name: migration test
+      run: go test -v ./... -tags=integration
