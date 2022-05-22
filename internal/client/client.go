@@ -15,12 +15,12 @@ import (
 var Logger *zap.SugaredLogger
 
 type RecordsDetails struct {
-	Id         int64          `json:"id"`
-	Date       string         `json:"date"`
-	CategoryId int64          `json:"categoryID"`
-	Name       string         `json:"name"`
-	Price      int64          `json:"price"`
-	Memo       sql.NullString `json:"memo"`
+	Id         int64  `json:"id"`
+	Date       string `json:"date"`
+	CategoryId int64  `json:"categoryID"`
+	// Name       string         `json:"name"`
+	Price int64          `json:"price"`
+	Memo  sql.NullString `json:"memo"`
 }
 
 type ServerInfo struct {
@@ -49,11 +49,12 @@ func (c *clientRepo) PostMawinter(info *ServerInfo, categoryID int64, price int6
 		return nil, err
 	}
 
-	Logger.Infow("server info", "addr", info.Addr, "user", info.User, "pass", info.Pass)
+	postaddr := info.Addr + "record/"
+	Logger.Infow("server info", "addr", postaddr, "user", info.User, "pass", info.Pass)
 	client := &http.Client{
 		Timeout: time.Second * 10,
 	}
-	req, err := http.NewRequest("POST", info.Addr, bytes.NewReader(sendDataJson))
+	req, err := http.NewRequest("POST", postaddr, bytes.NewReader(sendDataJson))
 	if err != nil {
 		Logger.Errorw("create new request error", "data", sendData, "error", err)
 		return nil, err

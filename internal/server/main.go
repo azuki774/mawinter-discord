@@ -17,8 +17,8 @@ func Start(botConfig *DiscordBotConfig) (err error) {
 	clientrepo = botConfig.MawinterClient
 	users = &discordUsers{}
 
-	// TODO: add user system
-	users.addDiscordUser(client.ServerInfo{Addr: "http://mawinter-api/record/", User: "test", Pass: "test"}, "288297568369246208", "azuki")
+	// TODO: add multi user system
+	recordUserInfo()
 
 	discord, err := discordgo.New("Bot " + botConfig.AuthToken)
 	if err != nil {
@@ -46,4 +46,16 @@ func Start(botConfig *DiscordBotConfig) (err error) {
 		return err
 	}
 	return nil
+}
+
+func recordUserInfo() {
+	users.addDiscordUser(
+		client.ServerInfo{
+			Addr: os.Getenv("USER_MAWINTER_PATH"),
+			User: os.Getenv("USER_MAWINTER_USER"),
+			Pass: os.Getenv("USER_MAWINTER_PASS")},
+		os.Getenv("USER_DISCORD_ID"),
+		os.Getenv("USER_DISCORD_NAME"))
+	logger.Infow("userinfo loaded", "addr", os.Getenv("USER_MAWINTER_PATH"), "user", os.Getenv("USER_MAWINTER_USER"), "path", os.Getenv("USER_MAWINTER_PASS"),
+		"discord_id", os.Getenv("USER_DISCORD_ID"), "name", os.Getenv("USER_DISCORD_NAME"))
 }

@@ -34,7 +34,6 @@ type discordUser struct {
 }
 
 func (d *discordUsers) addDiscordUser(sinfo client.ServerInfo, id string, name string) *discordUser {
-	// ToDo: ServerInfo をセットする
 	newUser := discordUser{ServerInfo: sinfo, ID: id, Name: name, Context: ContextClosing, LastOrderID: -1}
 	d.Users = append(d.Users, &newUser)
 	return &newUser

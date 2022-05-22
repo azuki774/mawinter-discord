@@ -42,7 +42,7 @@ func init() {
 }
 
 func runServer() (err error) {
-	logger, err := GetSugaredLogger()
+	logger, err = GetSugaredLogger()
 	if err != nil {
 		return err
 	}
@@ -66,12 +66,12 @@ func runServer() (err error) {
 }
 
 func GetSugaredLogger() (*zap.SugaredLogger, error) {
-	logger, err := zap.NewDevelopment()
-	defer logger.Sync()
+	lg, err := zap.NewDevelopment()
+	defer lg.Sync()
 	if err != nil {
 		return nil, err
 	}
-	sugarLogger := logger.Sugar()
+	sugarLogger := lg.Sugar()
 	return sugarLogger, nil
 }
 
@@ -91,8 +91,13 @@ func GetEnviroment() (botConfig *server.DiscordBotConfig, err error) {
 		logger.Warn("run environment is undefined")
 	}
 
-	// TODO : USE_MOCK Optionの処理
+	if os.Getenv("USE_MOCK") == "0" {
+		logger.Info("use mawinter server")
+		botConfig.MawinterClient = client.NewClientRepo()
+	} else {
+		logger.Info("use mawinter stub")
+		botConfig.MawinterClient = client.NewMockClientRepo()
+	}
 
-	botConfig.MawinterClient = client.NewClientRepo()
 	return botConfig, nil
 }
