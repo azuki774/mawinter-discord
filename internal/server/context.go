@@ -33,9 +33,9 @@ type discordUser struct {
 	LastOrderID      int64 // not found = -1
 }
 
-func (d *discordUsers) addDiscordUser(id string, name string) *discordUser {
+func (d *discordUsers) addDiscordUser(sinfo client.ServerInfo, id string, name string) *discordUser {
 	// ToDo: ServerInfo をセットする
-	newUser := discordUser{ID: id, Name: name, Context: ContextClosing, LastOrderID: -1}
+	newUser := discordUser{ServerInfo: sinfo, ID: id, Name: name, Context: ContextClosing, LastOrderID: -1}
 	d.Users = append(d.Users, &newUser)
 	return &newUser
 }

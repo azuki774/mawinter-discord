@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/azuki774/mawinter-discord/internal/client"
 	"go.uber.org/zap"
 )
 
@@ -15,8 +16,9 @@ func TestInit(t *testing.T) {
 
 func Test_discordUsers_addDiscordUser(t *testing.T) {
 	type args struct {
-		id   string
-		name string
+		sinfo client.ServerInfo
+		id    string
+		name  string
 	}
 	tests := []struct {
 		name string
@@ -27,19 +29,19 @@ func Test_discordUsers_addDiscordUser(t *testing.T) {
 		{
 			name: "new first user",
 			d:    &discordUsers{},
-			args: args{id: "1", name: "test1"},
-			want: &discordUser{ID: "1", Name: "test1", Context: ContextClosing, LastOrderID: -1},
+			args: args{sinfo: client.ServerInfo{}, id: "1", name: "test1"},
+			want: &discordUser{ServerInfo: client.ServerInfo{}, ID: "1", Name: "test1", Context: ContextClosing, LastOrderID: -1},
 		},
 		{
 			name: "new second user",
 			d:    &discordUsers{Users: []*discordUser{{ID: "1", Name: "test1", Context: ContextClosing, LastOrderID: 123}}},
-			args: args{id: "2", name: "test2"},
-			want: &discordUser{ID: "2", Name: "test2", Context: ContextClosing, LastOrderID: -1},
+			args: args{sinfo: client.ServerInfo{}, id: "2", name: "test2"},
+			want: &discordUser{ServerInfo: client.ServerInfo{}, ID: "2", Name: "test2", Context: ContextClosing, LastOrderID: -1},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.d.addDiscordUser(tt.args.id, tt.args.name); !reflect.DeepEqual(got, tt.want) {
+			if got := tt.d.addDiscordUser(tt.args.sinfo, tt.args.id, tt.args.name); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("discordUsers.addDiscordUser() = %v, want %v", got, tt.want)
 			}
 		})

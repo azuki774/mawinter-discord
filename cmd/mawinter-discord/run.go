@@ -93,6 +93,6 @@ func GetEnviroment() (botConfig *server.DiscordBotConfig, err error) {
 
 	// TODO : USE_MOCK Optionの処理
 
-	botConfig.MawinterClient = client.NewMockClientRepo()
+	botConfig.MawinterClient = client.NewClientRepo()
 	return botConfig, nil
 }

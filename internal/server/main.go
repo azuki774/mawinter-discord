@@ -5,6 +5,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/azuki774/mawinter-discord/internal/client"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -12,11 +13,12 @@ var users *discordUsers
 
 func Start(botConfig *DiscordBotConfig) (err error) {
 	logger = botConfig.Logger
+	client.Logger = logger
 	clientrepo = botConfig.MawinterClient
 	users = &discordUsers{}
 
 	// TODO: add user system
-	users.addDiscordUser("288297568369246208", "azuki")
+	users.addDiscordUser(client.ServerInfo{Addr: "http://mawinter-api/record/", User: "test", Pass: "test"}, "288297568369246208", "azuki")
 
 	discord, err := discordgo.New("Bot " + botConfig.AuthToken)
 	if err != nil {
