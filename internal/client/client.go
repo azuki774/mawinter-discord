@@ -63,6 +63,9 @@ func (c *clientRepo) PostMawinter(info *ServerInfo, categoryID int64, price int6
 
 	res, err := client.Do(req)
 	defer func() {
+		if res == nil {
+			return
+		}
 		if res.Body == nil {
 			return
 		}

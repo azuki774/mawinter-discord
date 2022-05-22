@@ -10,9 +10,11 @@ import (
 )
 
 var users *discordUsers
+var envName string
 
 func Start(botConfig *DiscordBotConfig) (err error) {
 	logger = botConfig.Logger
+	envName = botConfig.EnvName
 	client.Logger = logger
 	clientrepo = botConfig.MawinterClient
 	users = &discordUsers{}

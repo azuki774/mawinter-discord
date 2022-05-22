@@ -33,6 +33,14 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	if m.Content == "env" { // show environment name
+		_, err := s.ChannelMessageSend(m.ChannelID, envName)
+		if err != nil {
+			logger.Errorw("failed to send message", "error", err)
+		}
+		return
+	}
+
 	user, err := users.getUserInfoByID(m.Author.ID)
 	if errors.Is(err, ErrUserNotFound) {
 		loggerID.Warn("unknown user")
@@ -55,6 +63,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if m.Content == "r" {
 			user.changeCtxStatus(ContextOrderWaiting)
 			categoryChoicePost(s, m, user)
+			return
 		}
 		// parse price
 		price, err = strconv.Atoi(m.Content)
@@ -72,7 +81,14 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		res, err := clientrepo.PostMawinter(&user.ServerInfo, user.ChooseCategoryID, int64(price))
 		if err != nil {
 			// TODO: invalid data or connection lost かで分ける
+			_, err = s.ChannelMessageSend(m.ChannelID, "internal error")
+			if err != nil {
+				logger.Errorw("failed to send message", "error", err)
+				return
+			}
 			logger.Errorw("failed to send order to mawinter-server", "error", err)
+			user.changeCtxStatus(ContextOrderWaiting)
+			categoryChoicePost(s, m, user)
 			return
 		}
 

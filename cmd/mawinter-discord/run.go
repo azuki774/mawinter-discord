@@ -79,6 +79,7 @@ func GetEnviroment() (botConfig *server.DiscordBotConfig, err error) {
 	botConfig = &server.DiscordBotConfig{}
 	if v, ok := os.LookupEnv("AUTH_TOKEN"); ok {
 		botConfig.AuthToken = v
+		logger.Debugw("use token", "token", v)
 	} else {
 		logger.Error("discord authentication token not found")
 		return nil, err
