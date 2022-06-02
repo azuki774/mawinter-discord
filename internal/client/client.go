@@ -31,9 +31,29 @@ type ServerInfo struct {
 
 type ClientRepository interface {
 	PostMawinter(info *ServerInfo, categoryID int64, price int64) (*RecordsDetails, error)
+	DeleteMawinter(info *ServerInfo, ID int64) error
+	mustEmbedUnimplementedClient()
 }
 
 type clientRepo struct {
+	UnimplementedClient
+}
+
+type UnimplementedClient struct {
+}
+
+func (*UnimplementedClient) mustEmbedUnimplementedClient() {}
+
+type UnsafeElectConsumeService interface {
+	mustEmbedUnimplementedClient()
+}
+
+func (c *UnimplementedClient) PostMawinter(info *ServerInfo, categoryID int64, price int64) (*RecordsDetails, error) {
+	return &RecordsDetails{Id: 123, Date: "2000-01-23", CategoryId: categoryID, Price: price}, nil
+}
+
+func (c *UnimplementedClient) DeleteMawinter(info *ServerInfo, ID int64) error {
+	return nil
 }
 
 func NewClientRepo() *clientRepo {
@@ -41,8 +61,7 @@ func NewClientRepo() *clientRepo {
 }
 
 func (c *clientRepo) PostMawinter(info *ServerInfo, categoryID int64, price int64) (*RecordsDetails, error) {
-	var sendData RecordsDetails
-	sendData = RecordsDetails{CategoryId: categoryID, Price: price}
+	var sendData RecordsDetails = RecordsDetails{CategoryId: categoryID, Price: price}
 	sendDataJson, err := json.Marshal(sendData)
 	if err != nil {
 		Logger.Errorw("failed to Marshal", "data", sendData, "error", err)
