@@ -32,7 +32,7 @@ spec:
         - name: AUTH_TOKEN
           valueFrom:
             secretKeyRef:
-              name: maw-discord-dev-secret
+              name: maw-discord-secret-dev
               key: AUTH_TOKEN
         - name: USER_MAWINTER_USER
           valueFrom:
