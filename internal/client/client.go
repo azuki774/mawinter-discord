@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"go.uber.org/zap"
@@ -112,4 +113,31 @@ func (c *clientRepo) PostMawinter(info *ServerInfo, categoryID int64, price int6
 	}
 
 	return &resData, nil
+}
+
+func (c *clientRepo) DeleteMawinter(info *ServerInfo, ID int64) error {
+	deleteaddr := info.Addr + "record/" + strconv.FormatInt(ID, 10)
+	Logger.Infow("server info", "addr", deleteaddr, "user", info.User, "pass", info.Pass)
+	client := &http.Client{
+		Timeout: time.Second * 10,
+	}
+	req, err := http.NewRequest("DELETE", deleteaddr, nil)
+	if err != nil {
+		Logger.Errorw("create new request error", "error", err)
+		return err
+	}
+	req.SetBasicAuth(info.User, info.Pass)
+
+	res, err := client.Do(req)
+	if err != nil {
+		Logger.Errorw("received error", "error", err)
+		return err
+	}
+
+	if res.StatusCode != 204 { // Except No Contents
+		Logger.Errorw("received error response", "statusCode", res.StatusCode)
+		return fmt.Errorf("error response")
+	}
+
+	return nil
 }

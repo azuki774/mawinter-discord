@@ -17,6 +17,8 @@ const (
 	categoryTrans         = "🚉"
 	categoryStudy         = "📗"
 
+	operateCancel = "❌"
+
 	categoryIDFood          = 210
 	categoryIDLife          = 240
 	categoryIDEntertainment = 250
@@ -94,6 +96,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		logger.Infow("receive response from mawinter", "response", *res, "addr", user.ServerInfo.Addr)
 		resText := fmt.Sprintf("ID: %v, categoryID: %v, Price: %v", res.Id, res.CategoryId, res.Price)
+		user.LastOrderID = res.Id
 		_, err = s.ChannelMessageSend(m.ChannelID, resText)
 		if err != nil {
 			logger.Errorw("failed to send message", "error", err)
@@ -144,6 +147,33 @@ func messageReaction(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	case categoryStudy:
 		loggerIDName.Infow("category choose", "category", "study")
 		user.ChooseCategoryID = categoryIDStudy
+	case operateCancel:
+		// 直前の登録をキャンセルする
+		loggerIDName.Infow("category choose", "operate", "cancel")
+
+		// lastID = -1 --> not recorded
+		if user.LastOrderID == -1 {
+			_, err = s.ChannelMessageSend(r.ChannelID, "not recorded last order")
+			if err != nil {
+				logger.Errorw("failed to send message", "error", err)
+			}
+			return
+		}
+
+		err = clientrepo.DeleteMawinter(&user.ServerInfo, user.LastOrderID)
+		if err != nil {
+			logger.Errorw("failed to delete the last record", "error", err)
+			s.ChannelMessageSend(r.ChannelID, "failed to delete the last record")
+		}
+
+		s.ChannelMessageSend(r.ChannelID, "deleted the last record")
+		if err != nil {
+			logger.Errorw("failed to send message", "error", err)
+		}
+
+		user.LastOrderID = -1
+		user.changeCtxStatus(ContextOrderWaiting)
+		return
 	default:
 		loggerIDName.Infow("unknown choose", "category", r.Emoji.Name)
 		user.ChooseCategoryID = -1
@@ -173,4 +203,5 @@ func categoryChoicePost(s *discordgo.Session, m *discordgo.MessageCreate, user *
 	s.MessageReactionAdd(chanID, mesID, categoryCompute)
 	s.MessageReactionAdd(chanID, mesID, categoryTrans)
 	s.MessageReactionAdd(chanID, mesID, categoryStudy)
+	s.MessageReactionAdd(chanID, mesID, operateCancel)
 }
