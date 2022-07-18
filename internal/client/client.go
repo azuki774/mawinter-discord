@@ -2,7 +2,6 @@ package client
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -18,10 +17,10 @@ var Logger *zap.SugaredLogger
 type RecordsDetails struct {
 	Id         int64  `json:"id"`
 	Date       string `json:"date"`
-	CategoryId int64  `json:"categoryID"`
-	// Name       string         `json:"name"`
-	Price int64          `json:"price"`
-	Memo  sql.NullString `json:"memo"`
+	CategoryId int64  `json:"category_id"`
+	Name       string `json:"category_name"`
+	Price      int64  `json:"price"`
+	Memo       string `json:"memo"`
 }
 
 type ServerInfo struct {
@@ -50,7 +49,7 @@ type UnsafeElectConsumeService interface {
 }
 
 func (c *UnimplementedClient) PostMawinter(info *ServerInfo, categoryID int64, price int64) (*RecordsDetails, error) {
-	return &RecordsDetails{Id: 123, Date: "2000-01-23", CategoryId: categoryID, Price: price}, nil
+	return &RecordsDetails{Id: 123, Date: "2000-01-23", CategoryId: categoryID, Name: "category_name", Price: price}, nil
 }
 
 func (c *UnimplementedClient) DeleteMawinter(info *ServerInfo, ID int64) error {
@@ -62,7 +61,11 @@ func NewClientRepo() *clientRepo {
 }
 
 func (c *clientRepo) PostMawinter(info *ServerInfo, categoryID int64, price int64) (*RecordsDetails, error) {
-	var sendData RecordsDetails = RecordsDetails{CategoryId: categoryID, Price: price}
+	type sendRecordStruct struct {
+		CategoryId int64 `json:"category_id"`
+		Price      int64 `json:"price"`
+	}
+	sendData := sendRecordStruct{CategoryId: categoryID, Price: price}
 	sendDataJson, err := json.Marshal(sendData)
 	if err != nil {
 		Logger.Errorw("failed to Marshal", "data", sendData, "error", err)
@@ -99,7 +102,7 @@ func (c *clientRepo) PostMawinter(info *ServerInfo, categoryID int64, price int6
 		return nil, err
 	}
 
-	if res.StatusCode != 200 {
+	if res.StatusCode != 201 {
 		Logger.Errorw("received error response", "statusCode", res.StatusCode)
 		return nil, fmt.Errorf("error response")
 	}
