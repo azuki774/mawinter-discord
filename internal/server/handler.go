@@ -83,9 +83,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		res, err := clientrepo.PostMawinter(&user.ServerInfo, user.ChooseCategoryID, int64(price))
 		if err != nil {
 			// TODO: invalid data or connection lost かで分ける
-			_, err = s.ChannelMessageSend(m.ChannelID, "internal error")
-			if err != nil {
-				logger.Errorw("failed to send message", "error", err)
+			_, nerr := s.ChannelMessageSend(m.ChannelID, "internal error")
+			if nerr != nil {
+				logger.Errorw("failed to send message", "error", nerr)
 				return
 			}
 			logger.Errorw("failed to send order to mawinter-server", "error", err)
@@ -95,7 +95,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 
 		logger.Infow("receive response from mawinter", "response", *res, "addr", user.ServerInfo.Addr)
-		resText := fmt.Sprintf("ID: %v, categoryID: %v, Price: %v", res.Id, res.CategoryId, res.Price)
+		resText := fmt.Sprintf("ID: %v, Name: %v, Price: %v", res.Id, res.Name, res.Price)
 		user.LastOrderID = res.Id
 		_, err = s.ChannelMessageSend(m.ChannelID, resText)
 		if err != nil {

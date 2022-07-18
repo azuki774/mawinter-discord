@@ -31,7 +31,7 @@ services:
     volumes:
         - ../../build/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
   maw-api:
-    image: ghcr.io/azuki774/mawinter-api:latest
+    image: ghcr.io/azuki774/mawinter-api:develop
     container_name: mawinter-api
     ports:
         - "8080:80"
