@@ -24,7 +24,7 @@ spec:
         - name: USE_MOCK
           value: "0"
         - name: USER_MAWINTER_PATH
-          value: https://siberia.azuki-black.tech/mawinter/
+          value: https://siberia.azk774.net/mawinter/
         - name: USER_DISCORD_ID
           value: "288297568369246208"
         - name: USER_DISCORD_NAME
