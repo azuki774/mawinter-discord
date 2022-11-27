@@ -62,10 +62,11 @@ func NewClientRepo() *clientRepo {
 
 func (c *clientRepo) PostMawinter(info *ServerInfo, categoryID int64, price int64) (*RecordsDetails, error) {
 	type sendRecordStruct struct {
-		CategoryId int64 `json:"category_id"`
-		Price      int64 `json:"price"`
+		CategoryId int64  `json:"category_id"`
+		Price      int64  `json:"price"`
+		Form       string `json:"from"`
 	}
-	sendData := sendRecordStruct{CategoryId: categoryID, Price: price}
+	sendData := sendRecordStruct{CategoryId: categoryID, Price: price, Form: "mawinter-discord"}
 	sendDataJson, err := json.Marshal(sendData)
 	if err != nil {
 		Logger.Errorw("failed to Marshal", "data", sendData, "error", err)
@@ -119,6 +120,7 @@ func (c *clientRepo) PostMawinter(info *ServerInfo, categoryID int64, price int6
 }
 
 func (c *clientRepo) DeleteMawinter(info *ServerInfo, ID int64) error {
+	// Not worked because mawinter-server not implemented
 	deleteaddr := info.Addr + "record/" + strconv.FormatInt(ID, 10)
 	Logger.Infow("server info", "addr", deleteaddr, "user", info.User, "pass", info.Pass)
 	client := &http.Client{
