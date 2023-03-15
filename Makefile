@@ -1,3 +1,4 @@
+SHELL=/bin/bash
 version_api=develop
 container_name=azuki774/mawinter-discord
 container_id=`docker ps -aqf "name=mawinter-discord"`

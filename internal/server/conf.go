@@ -5,12 +5,12 @@ import (
 	"go.uber.org/zap"
 )
 
-var logger *zap.SugaredLogger
+var logger *zap.Logger
 var clientrepo client.ClientRepository
 
 type DiscordBotConfig struct {
 	AuthToken      string
 	EnvName        string
 	MawinterClient client.ClientRepository
-	Logger         *zap.SugaredLogger
+	Logger         *zap.Logger
 }

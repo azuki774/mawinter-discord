@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var Logger *zap.SugaredLogger
+var Logger *zap.Logger
 
 type RecordsDetails struct {
 	Id         int64  `json:"id"`
@@ -69,18 +69,18 @@ func (c *clientRepo) PostMawinter(info *ServerInfo, categoryID int64, price int6
 	sendData := sendRecordStruct{CategoryId: categoryID, Price: price, Form: "mawinter-discord"}
 	sendDataJson, err := json.Marshal(sendData)
 	if err != nil {
-		Logger.Errorw("failed to Marshal", "data", sendData, "error", err)
+		Logger.Error("failed to Marshal", zap.Error(err))
 		return nil, err
 	}
 
 	postaddr := info.Addr + "record/"
-	Logger.Infow("server info", "addr", postaddr, "user", info.User, "pass", info.Pass)
+	Logger.Info("server info", zap.String("addr", postaddr), zap.String("user", info.User), zap.String("pass", info.Pass))
 	client := &http.Client{
 		Timeout: time.Second * 10,
 	}
 	req, err := http.NewRequest("POST", postaddr, bytes.NewReader(sendDataJson))
 	if err != nil {
-		Logger.Errorw("create new request error", "data", sendData, "error", err)
+		Logger.Error("create new request error", zap.Error(err))
 		return nil, err
 	}
 	req.SetBasicAuth(info.User, info.Pass)
@@ -95,16 +95,16 @@ func (c *clientRepo) PostMawinter(info *ServerInfo, categoryID int64, price int6
 		}
 		err = res.Body.Close()
 		if err != nil {
-			Logger.Errorw("failed to close response body", "error", err)
+			Logger.Error("failed to close response body", zap.Error(err))
 		}
 	}()
 	if err != nil {
-		Logger.Errorw("post data error", "data", sendData)
+		Logger.Error("post data error", zap.Error(err))
 		return nil, err
 	}
 
 	if res.StatusCode != 201 {
-		Logger.Errorw("received error response", "statusCode", res.StatusCode)
+		Logger.Error("received error response", zap.Int("statusCode", res.StatusCode))
 		return nil, fmt.Errorf("error response")
 	}
 
@@ -112,7 +112,7 @@ func (c *clientRepo) PostMawinter(info *ServerInfo, categoryID int64, price int6
 	body, err := io.ReadAll(res.Body)
 	err = json.Unmarshal(body, &resData)
 	if err != nil {
-		Logger.Errorw("failed to Unmarshal", "data", res.Body, "error", err)
+		Logger.Error("failed to Unmarshal", zap.Error(err))
 		return nil, err
 	}
 
@@ -122,25 +122,25 @@ func (c *clientRepo) PostMawinter(info *ServerInfo, categoryID int64, price int6
 func (c *clientRepo) DeleteMawinter(info *ServerInfo, ID int64) error {
 	// Not worked because mawinter-server not implemented
 	deleteaddr := info.Addr + "record/" + strconv.FormatInt(ID, 10)
-	Logger.Infow("server info", "addr", deleteaddr, "user", info.User, "pass", info.Pass)
+	Logger.Info("server info", zap.String("addr", deleteaddr), zap.String("user", info.User), zap.String("pass", info.Pass))
 	client := &http.Client{
 		Timeout: time.Second * 10,
 	}
 	req, err := http.NewRequest("DELETE", deleteaddr, nil)
 	if err != nil {
-		Logger.Errorw("create new request error", "error", err)
+		Logger.Error("create new request error", zap.Error(err))
 		return err
 	}
 	req.SetBasicAuth(info.User, info.Pass)
 
 	res, err := client.Do(req)
 	if err != nil {
-		Logger.Errorw("received error", "error", err)
+		Logger.Error("received error", zap.Error(err))
 		return err
 	}
 
 	if res.StatusCode != 204 { // Except No Contents
-		Logger.Errorw("received error response", "statusCode", res.StatusCode)
+		Logger.Error("received error response", zap.Int("statusCode", res.StatusCode))
 		return fmt.Errorf("error response")
 	}
 

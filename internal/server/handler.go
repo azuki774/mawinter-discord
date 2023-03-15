@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/bwmarrin/discordgo"
+	"go.uber.org/zap"
 )
 
 const (
@@ -29,8 +30,8 @@ const (
 )
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	loggerID := logger.With("name", "MessageCreate", "userID", m.Author.ID)
-	loggerID.Debugw("handler called")
+	loggerID := logger.With(zap.String("name", "MessageCreate"), zap.String("userID", m.Author.ID))
+	loggerID.Debug("handler called")
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
@@ -38,7 +39,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Content == "env" { // show environment name
 		_, err := s.ChannelMessageSend(m.ChannelID, envName)
 		if err != nil {
-			logger.Errorw("failed to send message", "error", err)
+			logger.Error("failed to send message", zap.Error(err))
 		}
 		return
 	}
@@ -47,21 +48,20 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if errors.Is(err, ErrUserNotFound) {
 		loggerID.Warn("unknown user")
 	} else if err != nil {
-		loggerID.Errorw("unknown error", "error", err)
+		loggerID.Error("unknown error", zap.Error(err))
 	}
-	loggerIDName := logger.With("username", user.Name)
-	loggerIDName.Infow("post Message", "message", m.Content)
+	loggerIDName := logger.With(zap.String("username", user.Name))
+	loggerIDName.Info("post Message", zap.String("message", m.Content))
 
 	var price int
 	switch user.Context {
 	case ContextClosing:
-		loggerIDName.Debugw("check now status", "status", ContextClosing)
 		user.changeCtxStatus(ContextOrderWaiting)
 		categoryChoicePost(s, m, user)
 	case ContextOrderWaiting:
-		loggerIDName.Debugw("check now status", "status", ContextOrderWaiting)
+
 	case ContextPriceWaiting:
-		loggerIDName.Debugw("check now status", "status", ContextPriceWaiting)
+
 		if m.Content == "r" {
 			user.changeCtxStatus(ContextOrderWaiting)
 			categoryChoicePost(s, m, user)
@@ -70,10 +70,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		// parse price
 		price, err = strconv.Atoi(m.Content)
 		if err != nil {
-			loggerIDName.Warnw("invalid price value", "error", err)
+			loggerIDName.Warn("invalid price value", zap.Error(err))
 			_, err = s.ChannelMessageSend(m.ChannelID, "invalid value"+"\n"+"what value? (type 'r' to back to category select.)")
 			if err != nil {
-				logger.Errorw("failed to send message", "error", err)
+				logger.Error("failed to send message", zap.Error(err))
 				return
 			}
 			return
@@ -85,21 +85,21 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			// TODO: invalid data or connection lost かで分ける
 			_, nerr := s.ChannelMessageSend(m.ChannelID, "internal error")
 			if nerr != nil {
-				logger.Errorw("failed to send message", "error", nerr)
+				logger.Error("failed to send message", zap.Error(nerr))
 				return
 			}
-			logger.Errorw("failed to send order to mawinter-server", "error", err)
+			logger.Error("failed to send order to mawinter-server", zap.Error(err))
 			user.changeCtxStatus(ContextOrderWaiting)
 			categoryChoicePost(s, m, user)
 			return
 		}
 
-		logger.Infow("receive response from mawinter", "response", *res, "addr", user.ServerInfo.Addr)
+		logger.Info("receive response from mawinter", zap.String("addr", user.ServerInfo.Addr))
 		resText := fmt.Sprintf("ID: %v, Name: %v, Price: %v", res.Id, res.Name, res.Price)
 		user.LastOrderID = res.Id
 		_, err = s.ChannelMessageSend(m.ChannelID, resText)
 		if err != nil {
-			logger.Errorw("failed to send message", "error", err)
+			logger.Error("failed to send message", zap.Error(err))
 			return
 		}
 
@@ -110,8 +110,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func messageReaction(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
-	logger.Debugw("handler called", "name", "MessageReactionAdd", "userID", r.UserID)
-	loggerID := logger.With("name", "MessageReactionAdd", "userID", r.UserID, "emoji", r.Emoji)
+	logger.Debug("handler called", zap.String("name", "MessageReactionAdd"), zap.String("userID", r.UserID))
+	loggerID := logger.With(zap.String("name", "MessageCreate"), zap.String("userID", r.UserID))
 	if r.UserID == s.State.User.ID {
 		return
 	}
@@ -120,62 +120,62 @@ func messageReaction(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	if errors.Is(err, ErrUserNotFound) {
 		loggerID.Warn("unknown user")
 	} else if err != nil {
-		loggerID.Errorw("unknown error", "error", err)
+		loggerID.Error("unknown error", zap.Error(err))
 	}
 
-	loggerIDName := logger.With("username", user.Name)
+	loggerIDName := logger.With(zap.String("username", user.Name))
 
 	switch r.Emoji.Name {
 	case categoryFood:
-		loggerIDName.Infow("category choose", "category", "food")
+		loggerIDName.Info("category choose", zap.String("category", "food"))
 		user.ChooseCategoryID = categoryIDFood
 	case categoryLife:
-		loggerIDName.Infow("category choose", "category", "life")
+		loggerIDName.Info("category choose", zap.String("category", "life"))
 		user.ChooseCategoryID = categoryIDLife
 	case categoryEntertainment:
-		loggerIDName.Infow("category choose", "category", "entertainment")
+		loggerIDName.Info("category choose", zap.String("category", "entertainment"))
 		user.ChooseCategoryID = categoryIDEntertainment
 	case categoryFriends:
-		loggerIDName.Infow("category choose", "category", "friends")
+		loggerIDName.Info("category choose", zap.String("category", "friends"))
 		user.ChooseCategoryID = categoryIDFriends
 	case categoryCompute:
-		loggerIDName.Infow("category choose", "category", "compute")
+		loggerIDName.Info("category choose", zap.String("category", "compute"))
 		user.ChooseCategoryID = categoryIDCompute
 	case categoryTrans:
-		loggerIDName.Infow("category choose", "category", "trans")
+		loggerIDName.Info("category choose", zap.String("category", "trans"))
 		user.ChooseCategoryID = categoryIDTrans
 	case categoryStudy:
-		loggerIDName.Infow("category choose", "category", "study")
+		loggerIDName.Info("category choose", zap.String("category", "study"))
 		user.ChooseCategoryID = categoryIDStudy
 	case operateCancel:
 		// 直前の登録をキャンセルする
-		loggerIDName.Infow("category choose", "operate", "cancel")
+		loggerIDName.Info("category choose", zap.String("operate", "cancel"))
 
 		// lastID = -1 --> not recorded
 		if user.LastOrderID == -1 {
 			_, err = s.ChannelMessageSend(r.ChannelID, "not recorded last order")
 			if err != nil {
-				logger.Errorw("failed to send message", "error", err)
+				logger.Error("failed to send message", zap.Error(err))
 			}
 			return
 		}
 
 		err = clientrepo.DeleteMawinter(&user.ServerInfo, user.LastOrderID)
 		if err != nil {
-			logger.Errorw("failed to delete the last record", "error", err)
+			logger.Error("failed to delete the last record", zap.Error(err))
 			s.ChannelMessageSend(r.ChannelID, "failed to delete the last record")
 		}
 
 		s.ChannelMessageSend(r.ChannelID, "deleted the last record")
 		if err != nil {
-			logger.Errorw("failed to send message", "error", err)
+			logger.Error("failed to send message", zap.Error(err))
 		}
 
 		user.LastOrderID = -1
 		user.changeCtxStatus(ContextOrderWaiting)
 		return
 	default:
-		loggerIDName.Infow("unknown choose", "category", r.Emoji.Name)
+		loggerIDName.Info("unknown choose", zap.String("category", r.Emoji.Name))
 		user.ChooseCategoryID = -1
 		return
 	}
@@ -183,7 +183,7 @@ func messageReaction(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	user.changeCtxStatus(ContextPriceWaiting)
 	_, err = s.ChannelMessageSend(r.ChannelID, "you choose "+r.Emoji.Name+"\n"+"what value? (type 'r' to back to category select.)")
 	if err != nil {
-		logger.Errorw("failed to send message", "error", err)
+		logger.Error("failed to send message", zap.Error(err))
 		return
 	}
 }
@@ -191,7 +191,7 @@ func messageReaction(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 func categoryChoicePost(s *discordgo.Session, m *discordgo.MessageCreate, user *discordUser) {
 	mes, err := s.ChannelMessageSend(m.ChannelID, "choose category")
 	if err != nil {
-		logger.Errorw("failed to send message", "error", err)
+		logger.Error("failed to send message", zap.Error(err))
 		return
 	}
 	chanID := mes.ChannelID

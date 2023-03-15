@@ -8,9 +8,7 @@ import (
 )
 
 func TestInit(t *testing.T) {
-	slogger, _ := zap.NewDevelopment()
-	defer slogger.Sync()
-	Logger = slogger.Sugar()
+	Logger, _ = zap.NewProduction()
 }
 
 func TestNewClientRepo(t *testing.T) {
