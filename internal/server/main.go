@@ -40,7 +40,8 @@ func Start(botConfig *DiscordBotConfig) (err error) {
 	logger.Info("start discord bot")
 
 	stopBot := make(chan os.Signal, 1)
-	signal.Notify(stopBot, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
+	signal.Notify(stopBot, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
+	<-stopBot // blocking
 
 	err = discord.Close()
 	if err != nil {
