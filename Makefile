@@ -7,24 +7,20 @@ container_id=`docker ps -aqf "name=mawinter-discord"`
 build:
 	docker build -t $(container_name):$(version_api) -f build/Dockerfile .
 
-push:
-	docker tag $(container_name):$(version_api) ghcr.io/$(container_name):$(version_api)
-	docker push ghcr.io/$(container_name):$(version_api)
-
 test:
 	go test -v ./...
 
 migration-test:
-	docker-compose -f deploy/docker/migration-test.yml up --build -d
+	docker compose -f deploy/docker/migration-test.yml up --build -d
 	sleep 20s
 	go test -v ./... -tags=integration
-	docker-compose -f deploy/docker/migration-test.yml down
+	docker compose -f deploy/docker/migration-test.yml down
 	
 run:
-	docker-compose -f deploy/docker/docker-compose.yml up -d
+	docker compose -f deploy/docker/docker-compose.yml up -d
 
 stop:
-	docker-compose -f deploy/docker/docker-compose.yml down
+	docker compose -f deploy/docker/docker-compose.yml down
 
 rebuild:
 	make stop && make && make run
