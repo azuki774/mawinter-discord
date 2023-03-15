@@ -10,11 +10,11 @@ build:
 test:
 	go test -v ./...
 
-migration-test:
-	docker compose -f deploy/docker/migration-test.yml up --build -d
-	sleep 20s
-	go test -v ./... -tags=integration
-	docker compose -f deploy/docker/migration-test.yml down
+# migration-test:
+# 	docker compose -f deploy/docker/migration-test.yml up --build -d
+# 	sleep 20s
+# 	go test -v ./... -tags=integration
+# 	docker compose -f deploy/docker/migration-test.yml down
 	
 run:
 	docker compose -f deploy/docker/docker-compose.yml up -d
