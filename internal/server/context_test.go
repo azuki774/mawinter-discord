@@ -9,9 +9,8 @@ import (
 )
 
 func TestInit(t *testing.T) {
-	slogger, _ := zap.NewDevelopment()
-	defer slogger.Sync()
-	logger = slogger.Sugar()
+	logger, _ = zap.NewProduction()
+	defer logger.Sync()
 }
 
 func Test_discordUsers_addDiscordUser(t *testing.T) {

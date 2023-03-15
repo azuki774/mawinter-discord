@@ -7,6 +7,7 @@ import (
 
 	"github.com/azuki774/mawinter-discord/internal/client"
 	"github.com/bwmarrin/discordgo"
+	"go.uber.org/zap"
 )
 
 var users *discordUsers
@@ -32,19 +33,19 @@ func Start(botConfig *DiscordBotConfig) (err error) {
 
 	err = discord.Open() // Connect Discord
 	if err != nil {
-		logger.Errorw("failed to start discord bot", "error", err)
+		logger.Error("failed to start discord bot", zap.Error(err))
 		return err
 	}
 
 	logger.Info("start discord bot")
 
 	stopBot := make(chan os.Signal, 1)
-	signal.Notify(stopBot, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
-	logger.Infow("catch stop signal", "signal", <-stopBot) // blocking
+	signal.Notify(stopBot, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
+	<-stopBot // blocking
 
 	err = discord.Close()
 	if err != nil {
-		logger.Errorw("discord bot close error", "error", err)
+		logger.Error("discord bot close error", zap.Error(err))
 		return err
 	}
 	return nil
@@ -58,6 +59,6 @@ func recordUserInfo() {
 			Pass: os.Getenv("USER_MAWINTER_PASS")},
 		os.Getenv("USER_DISCORD_ID"),
 		os.Getenv("USER_DISCORD_NAME"))
-	logger.Infow("userinfo loaded", "addr", os.Getenv("USER_MAWINTER_PATH"), "user", os.Getenv("USER_MAWINTER_USER"), "path", os.Getenv("USER_MAWINTER_PASS"),
-		"discord_id", os.Getenv("USER_DISCORD_ID"), "name", os.Getenv("USER_DISCORD_NAME"))
+	logger.Info("userinfo loaded", zap.String("addr", os.Getenv("USER_MAWINTER_PATH")), zap.String("user", os.Getenv("USER_MAWINTER_USER")), zap.String("path", os.Getenv("USER_MAWINTER_PASS")),
+		zap.String("discord_id", os.Getenv("USER_DISCORD_ID")), zap.String("name", os.Getenv("USER_DISCORD_NAME")))
 }

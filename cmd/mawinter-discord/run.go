@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var logger *zap.SugaredLogger
+var logger *zap.Logger
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
@@ -42,11 +42,11 @@ func init() {
 }
 
 func runServer() (err error) {
-	logger, err = GetSugaredLogger()
+	logger, err = GetLogger()
 	if err != nil {
 		return err
 	}
-
+	defer logger.Sync()
 	logger.Info("set logger")
 
 	botConfig, err := GetEnviroment()
@@ -55,7 +55,7 @@ func runServer() (err error) {
 		return err
 	}
 
-	logger.Infow("Run enviromenment", "env", botConfig.EnvName)
+	logger.Info("Run enviromenment", zap.String("env", botConfig.EnvName))
 	botConfig.Logger = logger
 
 	if err = server.Start(botConfig); err != nil {
@@ -65,23 +65,21 @@ func runServer() (err error) {
 	return nil
 }
 
-func GetSugaredLogger() (*zap.SugaredLogger, error) {
-	lg, err := zap.NewDevelopment()
-	defer lg.Sync()
+func GetLogger() (*zap.Logger, error) {
+	lg, err := zap.NewProduction()
 	if err != nil {
 		return nil, err
 	}
-	sugarLogger := lg.Sugar()
-	return sugarLogger, nil
+	return lg, nil
 }
 
 func GetEnviroment() (botConfig *server.DiscordBotConfig, err error) {
 	botConfig = &server.DiscordBotConfig{}
 	if v, ok := os.LookupEnv("AUTH_TOKEN"); ok {
 		botConfig.AuthToken = v
-		logger.Debugw("use token", "token", v)
+		logger.Debug("use token", zap.String("token", v))
 	} else {
-		logger.Error("discord authentication token not found")
+		logger.Error("discord authentication token not found", zap.Error(err))
 		return nil, err
 	}
 

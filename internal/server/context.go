@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/azuki774/mawinter-discord/internal/client"
+	"go.uber.org/zap"
 )
 
 type ContextStatus string
@@ -50,7 +51,7 @@ func (d *discordUsers) getUserInfoByID(targetID string) (*discordUser, error) {
 }
 
 func (d *discordUser) changeCtxStatus(nextCtx ContextStatus) *discordUser {
-	logger.Infow("change status", "userID", d.ID, "username", d.Name, "nowstatus", d.Context, "nextstatus", nextCtx)
+	logger.Info("change status", zap.String("userID", d.ID), zap.String("username", d.Name))
 	d.Context = nextCtx
 	return d
 }

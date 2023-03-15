@@ -1,4 +1,4 @@
-FROM golang:1.18-alpine3.15 as builder
+FROM golang:1.20-alpine3.17 as builder
 LABEL description="mawinter-discord server"
 
 COPY cmd/ /app/cmd/
@@ -8,6 +8,6 @@ RUN cd /app && go mod tidy
 WORKDIR /app/cmd/mawinter-discord/
 RUN go build -o /app/cmd/mawinter-discord/mawinter-discord
 
-FROM alpine:3.15
+FROM alpine:latest
 COPY --from=builder /app/cmd/mawinter-discord/mawinter-discord /bin/mawinter-discord
 ENTRYPOINT ["/bin/mawinter-discord", "run"]
