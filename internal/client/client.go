@@ -73,7 +73,7 @@ func (c *clientRepo) PostMawinter(info *ServerInfo, categoryID int64, price int6
 		return nil, err
 	}
 
-	postaddr := info.Addr + "record/"
+	postaddr := info.Addr + "v2/record"
 	Logger.Info("server info", zap.String("addr", postaddr), zap.String("user", info.User), zap.String("pass", info.Pass))
 	client := &http.Client{
 		Timeout: time.Second * 10,
